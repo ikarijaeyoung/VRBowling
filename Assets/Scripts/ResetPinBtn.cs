@@ -7,7 +7,8 @@ public class ResetPinBtn : MonoBehaviour
     [SerializeField] List<GameObject> bowlingPins;
     private Dictionary<GameObject, Vector3> initPinPositions = new Dictionary<GameObject, Vector3>();
     private Dictionary<GameObject, Quaternion> initPinRotations = new Dictionary<GameObject, Quaternion>();
-    [SerializeField] Canvas canvas;
+    [SerializeField] AudioSource _audioSource;
+    [SerializeField] AudioClip _audioClip;
     void Start()
     {
         foreach (GameObject pin in bowlingPins)
@@ -25,12 +26,14 @@ public class ResetPinBtn : MonoBehaviour
     }
     public void ResetBowlingPins()
     {
+        _audioSource.PlayOneShot(_audioClip);
         foreach (GameObject pin in bowlingPins)
         {
             if (pin != null)
             {
                 pin.transform.position = initPinPositions[pin];
                 pin.transform.rotation = initPinRotations[pin];
+                pin.SetActive(true);
 
                 Rigidbody rb = pin.GetComponent<Rigidbody>();
                 if (rb != null)
