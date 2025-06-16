@@ -4,43 +4,57 @@ using UnityEngine;
 
 public class ResetPin : MonoBehaviour
 {
+    [SerializeField] GameObject pin;
     [SerializeField] private float pinHideDelay = 2f;
     Vector3 initPos;
     Quaternion initQuaternion;
+    Rigidbody rb;
+    bool isFalled;
     void Start()
     {
-        initPos = gameObject.transform.position;
-        initQuaternion = gameObject.transform.rotation;
+        // pin = GetComponent<GameObject>(); 이거 왜 안 되지..
+        rb = GetComponentInParent<Rigidbody>();
+        initPos = pin.transform.position;
+        initQuaternion = pin.transform.rotation;
     }
     public void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Ground"))
+        if (other.gameObject.CompareTag("Ball") || !isFalled) StartCoroutine(CheckAndResetPin());
+
+        if (other.gameObject.CompareTag("Ground"))   // 넘어져서 트리거가 땅에 닿으면
         {
-            Debug.Log("넘어짐");
-            HidePin();
-        }
-        else
-        {
-            // TODO : 2초 기다리고, 넘어져 있지 않으면 위치 기울기 초기 위치로 재설정.
-            new WaitForSeconds(2f); // 여기도 코루틴으로 최적화 할 수 있나?
-            if (!other.gameObject.CompareTag("Ground"))
+            StopCoroutine(CheckAndResetPin());
+            isFalled = true;
+            if (isFalled)
             {
-                ResetPinPositionAfterHit();
-                Debug.Log("안 넘어졌으니 다시 원위치");
+                Debug.Log("넘어짐");
+                StartCoroutine(HidePin());           // 비활성화(숨김)
             }
         }
+        // else                                      // 넘어지지않고, 핀 끼리 부딪혀 애매한 위치일 경우
+        // {
+        //     StartCoroutine(CheckAndResetPin());   // 초기위치로 원위치.
+        // }
 
     }
     public IEnumerator HidePin()
     {
         Debug.Log("Hide Pin : 코루틴 입장.");
         yield return new WaitForSeconds(pinHideDelay);
-        gameObject.SetActive(false);
+        pin.SetActive(false);
         Debug.Log("Hide Pin : 코루틴 끝.");
+    }
+    private IEnumerator CheckAndResetPin()
+    {
+        yield return new WaitForSeconds(4f);
+        ResetPinPositionAfterHit();
+        Debug.Log("안 넘어졌으니 다시 원위치");
     }
     public void ResetPinPositionAfterHit()
     {
-        gameObject.transform.position = initPos;
-        gameObject.transform.rotation = initQuaternion;
+        pin.transform.position = initPos;
+        pin.transform.rotation = initQuaternion;
+        rb.velocity = Vector3.zero;
+        isFalled = false;
     }
 }
